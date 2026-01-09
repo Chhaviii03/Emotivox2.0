@@ -25,3 +25,17 @@ dist-ssr
 Backend/venv/
 Backend/venv/Lib/site-packages/**/*.dll
 Backend/venv/Lib/site-packages/**/*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+Backend/outputs/*.wav
+Backend/.env
+
+# Environment variables
+.env
+.env.local
+.env.production

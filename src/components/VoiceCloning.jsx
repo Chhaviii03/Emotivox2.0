@@ -3,6 +3,9 @@ import { FaUpload, FaMicrophone, FaPause, FaPlay, FaDownload } from "react-icons
 import Header from "./Header";
 
 const VoiceCloning = () => {
+  // Get API URL from environment variable or use localhost as fallback
+  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+  
   const [text, setText] = useState("");
   const [audioFiles, setAudioFiles] = useState([]);
   const [audioFile, setAudioFile] = useState(null);
@@ -31,28 +34,38 @@ const VoiceCloning = () => {
     formData.append("text", text);
     formData.append("voiceFiles", audioFile);
 
-    const response = await fetch("http://127.0.0.1:5000/clone", {
-      method: "POST",
-      body: formData
-    });
+    try {
+      const response = await fetch(`${API_URL}/clone`, {
+        method: "POST",
+        body: formData
+      });
 
-    if (response.ok) {
-      const data = await response.json();
-      const url = data.download_url;
-      setAudioUrl(url);
-      loadAudioList();
-    } else {
-      alert("Something went wrong!");
+      if (response.ok) {
+        const data = await response.json();
+        const url = data.download_url;
+        setAudioUrl(url);
+        loadAudioList();
+      } else {
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }));
+        alert(`Error: ${errorData.error || "Something went wrong!"}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Failed to connect to backend. Please check if the server is running at ${API_URL}`);
     }
   };
 
   const loadAudioList = async () => {
-    const response = await fetch("http://127.0.0.1:5000/list-outputs");
-    if (response.ok) {
-      const files = await response.json();
-      setAudioFiles(files);
-    } else {
-      alert("Failed to load audio files!");
+    try {
+      const response = await fetch(`${API_URL}/list-outputs`);
+      if (response.ok) {
+        const files = await response.json();
+        setAudioFiles(files);
+      } else {
+        console.error("Failed to load audio files");
+      }
+    } catch (error) {
+      console.error("Error loading audio list:", error);
     }
   };
 
