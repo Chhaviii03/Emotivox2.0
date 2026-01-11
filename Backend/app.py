@@ -1,19 +1,40 @@
 from flask import Flask, request, jsonify, send_from_directory, url_for
 from flask_cors import CORS
-from TTS.api import TTS
-from pydub import AudioSegment
 import os
 import uuid
+import sys
+
+# Try to import TTS - if it fails, we'll handle it gracefully
+try:
+    from TTS.api import TTS
+    TTS_AVAILABLE = True
+    print("TTS module imported successfully")
+except Exception as e:
+    TTS_AVAILABLE = False
+    print(f"WARNING: TTS module not available: {str(e)}")
+    print("TTS functionality will be disabled")
+
+try:
+    from pydub import AudioSegment
+    AUDIO_AVAILABLE = True
+    print("AudioSegment imported successfully")
+except Exception as e:
+    AUDIO_AVAILABLE = False
+    print(f"WARNING: pydub not available: {str(e)}")
 
 app = Flask(__name__)
 # Allow all origins for now - you can restrict to your Netlify URL in production
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+print("Flask app initialized")
 
 # Initialize the TTS model lazily to avoid timeout on startup
 tts = None
 
 def get_tts_model():
     global tts
+    if not TTS_AVAILABLE:
+        raise Exception("TTS module is not available")
     if tts is None:
         print("Loading TTS model... This may take a few minutes on first load.")
         try:
@@ -22,16 +43,25 @@ def get_tts_model():
             print("TTS model loaded successfully!")
         except Exception as e:
             print(f"Error loading TTS model: {str(e)}")
+            import traceback
+            traceback.print_exc()
             raise
     return tts
 
 OUTPUT_FOLDER = "outputs"
 app.config['OUTPUT_FOLDER'] = OUTPUT_FOLDER
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+print(f"Output folder created: {OUTPUT_FOLDER}")
+print("App initialization complete")
 
 @app.route('/clone', methods=['POST'])
 def clone_voice():
     try:
+        if not TTS_AVAILABLE:
+            return jsonify({"error": "TTS module is not available. Check server logs."}), 503
+        if not AUDIO_AVAILABLE:
+            return jsonify({"error": "Audio processing module is not available. Check server logs."}), 503
+            
         text = request.form.get('text')
         files = request.files.getlist('voiceFiles')
 
@@ -113,7 +143,12 @@ def list_outputs():
 # Health check endpoint for Render
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({"status": "healthy", "message": "Backend is running"}), 200
+    return jsonify({
+        "status": "healthy", 
+        "message": "Backend is running",
+        "tts_available": TTS_AVAILABLE,
+        "audio_available": AUDIO_AVAILABLE
+    }), 200
 
 @app.route('/', methods=['GET'])
 def index():
