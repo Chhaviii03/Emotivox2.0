@@ -5,10 +5,8 @@ const BACKEND_URL = "https://emotivox2-0.onrender.com";
 
 const VoiceCloning = () => {
   // Get API URL from environment variable or use localhost as fallback
-  const API_URL = import.meta.env.VITE_API_URL;
-  if (!API_URL) {
-    console.error("VITE_API_URL is not defined");
-  }
+  const API_URL = "https://<your-render-service>.onrender.com";
+
   
   
   const [text, setText] = useState("");
