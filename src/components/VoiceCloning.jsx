@@ -1,10 +1,15 @@
-import { useState, useEffect } from "react";
-import { FaUpload, FaMicrophone, FaPause, FaPlay, FaDownload } from "react-icons/fa";
+import { useEffect, useState } from "react";
+import { FaUpload } from "react-icons/fa";
 import Header from "./Header";
+const BACKEND_URL = "https://emotivox2-0.onrender.com";
 
 const VoiceCloning = () => {
   // Get API URL from environment variable or use localhost as fallback
-  const API_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:5000';
+  const API_URL = import.meta.env.VITE_API_URL;
+  if (!API_URL) {
+    console.error("VITE_API_URL is not defined");
+  }
+  
   
   const [text, setText] = useState("");
   const [audioFiles, setAudioFiles] = useState([]);
