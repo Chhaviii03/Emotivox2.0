@@ -12,7 +12,7 @@ permissions:
 env:
   AWS_REGION: us-east-1
   APPLICATION_NAME: Emotivox2.0
-  ENVIRONMENT_NAME: Emotivox2-env
+  ENVIRONMENT_NAME: Emotivox20-env
 
 jobs:
   deploy:
